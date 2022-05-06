@@ -1,0 +1,9 @@
+path: "WILL BE OVERRIDDEN FROM SCRIPT"
+train: images/train
+val: images/val
+
+# Classes
+nc: 3
+names: [
+    "Unknown", "Ball", "Person"
+]
