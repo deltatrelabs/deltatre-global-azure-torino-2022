@@ -7,8 +7,7 @@ using Microsoft.ML;
 
 var datasetRelativePath = @"../../../";
 string datasetPath = GetAbsolutePath(datasetRelativePath);
-//var imagesFolder = Path.Combine(datasetPath, "SampleData");
-var imagesFolder = Path.Combine(datasetPath, "SampleData", "soccer");
+var imagesFolder = Path.Combine(datasetPath, "SampleData");
 var outputFolder = Path.Combine(datasetPath, "SampleData", "Outputs");
 
 // Initialize MLContext
@@ -27,8 +26,7 @@ try
     Console.WriteLine("");
 
     // Create instance of model scorer (using OnnxRuntime)
-    //var modelScorer = new OnnxRuntimeModelScorer<Yolov5mModel>(mlContext);
-    var modelScorer = new OnnxRuntimeModelScorer<Yolov5mCustomModel>(mlContext);
+    var modelScorer = new OnnxRuntimeModelScorer<Yolov5mModel>(mlContext);
 
     // Use model to score data
     var results = modelScorer.Score(imageDataView);
@@ -97,7 +95,7 @@ void DrawBoundingBox(string outputImageLocation, ImagePrediction prediction)
             Pen pen = new Pen(box.Label.Color, 3.2f);
             SolidBrush colorBrush = new SolidBrush(box.Label.Color);
 
-            // Draw text on image 
+            // Draw text on image
             graphics.FillRectangle(colorBrush, (int)x, (int)(y - size.Height - 1), (int)size.Width, (int)size.Height);
             graphics.DrawString(text, drawFont, fontBrush, atPoint);
 

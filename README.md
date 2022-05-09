@@ -24,7 +24,7 @@ Software requirements:
 - Python 3.8.x
 
 To setup a local copy, just clone the repository.  
-You can find the training notebook in the `notebooks` folder, while training scripts and scoring demo app are in `src` folder.
+You can find the training notebook in the `notebooks` folder, while training scripts and scoring demo app are in `src` folder. Slides can be found in the `docs` folder.
 
 ### Ball & Person Detector Onnx Demo
 
@@ -46,108 +46,70 @@ var outputFolder = Path.Combine(datasetPath, "SampleData", "Outputs");
 
 ### Model Fine Tuning Demo
 
-**TODO: TO BE UPDATED**  
-**ADD REQUIREMENTS FOR AZURE**
+To run the demo code, you need:
 
-Before executing the training scripts, you need to place your set of images you want to use in a dataset folder and change paths accordingly. The dataset folder must be setup as following:
+- a *Microsoft Azure subscription*, and to setup Azure Machine Learning resources you can refer to the [Quickstart: Create workspace resources you need to get started with Azure Machine Learning](https://docs.microsoft.com/en-us/azure/machine-learning/quickstart-create-resources) tutorial.
+- Yolov5 pre-trained models and training scripts from [Ultralytics repository](https://github.com/ultralytics/yolov5), cloned in `src/yolov5` folder.
+- A Python 3.8.x environment to run notebook and scripts
 
-There you have a `Training` folder and a `Test` folder. Within each folder, you may put images in different sub-folders, representing the "label" of the contained images.
+    ```ps
+    python -m pip install -U pip
+    pip install wheel
+    pip install azureml-sdk[notebooks]
+    pip install click matplotlib numpy opencv-python
+    pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113
+    pip install -r src/yolov5/requirements.txt
+    ```
+
+Before executing the training scripts, you need to prepare and place the set of images you want to use in a dataset folder, and upload them to Azure ML. For labeling images, we used the open-source tool [CVAT](https://github.com/openvinotoolkit/cvat).
+
+The dataset folder must follow the Yolov5 structure: there you have the `images` and `labels` folder. Within each folder, `train`, `valid`, and `test` sub-folders. Within each folder, then, you have to put images and their corresponding labels. Labels must be in the Yolov5 format, as described in [Yolov5 documentation](https://docs.ultralytics.com/tutorials/train-custom-datasets/).
 
 An example of the dataset folder structure is:
 
-```bash
-└── src
-    └── ModelFineTuningDemo
-        └── SampleData
-            ├── MLModels
-            ├── Training
-            │   ├── Class1
-            │   │   ├── image1.png
-            │   │   ├── image2.png
-            │   │   ├── ...
-            │   │   └── imageN.png
-            │   ├── Class2
-            │   │   ├── image1.png
-            │   │   ├── image2.png
-            │   │   ├── ...
-            │   │   └── imageN.png
-            │   ├── ...
-            │   └── ClassN
-            │       ├── image1.png
-            │       ├── image2.png
-            │       ├── ...
-            │       └── imageN.png
-            └── Test
-                ├── Class1
-                │   ├── image1.png
-                │   ├── image2.png
-                │   ├── ...
-                │   └── imageN.png
-                ├── Class2
-                │   ├── image1.png
-                │   ├── image2.png
-                │   ├── ...
-                │   └── imageN.png
-                ├── ...
-                └── ClassN
-                    ├── image1.png
-                    ├── image2.png
-                    ├── ...
-                    └── imageN.png
+```ps
+└── yolov5_dataset
+    ├── images
+    │   ├── train
+    │   │   ├── image1.jpg
+    │   │   ├── image2.jpg
+    │   │   ├── ...
+    │   │   └── imageN.jpg
+    │   ├── val
+    │   │   ├── image1.jpg
+    │   │   ├── image2.jpg
+    │   │   ├── ...
+    │   │   └── imageN.jpg
+    │   └── test
+    │       ├── image1.jpg
+    │       ├── image2.jpg
+    │       ├── ...
+    │       └── imageN.jpg
+    └── labels
+        ├── train
+        │   ├── image1.txt
+        │   ├── image2.txt
+        │   ├── ...
+        │   └── imageN.txt
+        ├── val
+        │   ├── image1.txt
+        │   ├── image2.txt
+        │   ├── ...
+        │   └── imageN.txt
+        └── test
+            ├── image1.txt
+            ├── image2.txt
+            ├── ...
+            └── imageN.txt
 ```
 
 For the best results, each class should contain almost the same number of representative samples, and usually, the more samples you have, the more the quality of the fine-tuned model improves. But you need to test and verify on your own dataset the metrics and decide the proper actions to take to fulfill your requirements.
 
 ### Export YOLOv5 in ONNX model format
 
-**TODO: TO BE UPDATED, as shown in the session**
+Taking into account that the full training times for YOLOv5n/s/m/l/x are 1/2/4/6/8 days on an [NVIDIA V100 GPU](https://www.nvidia.com/en-us/data-center/a100/), the fastest way is to download pre-trained PyTorch models and convert them into the [ONNX](https://onnx.ai/) model format. The same, can be one for your fine-tuned model, as done in the demo notebook.
 
-Taking into account that the training times for YOLOv5n/s/m/l/x are 1/2/4/6/8 days on an [NVIDIA V100 GPU](https://www.nvidia.com/en-us/data-center/a100/), the fastest way is to download pre-trained models from PyTorch and convert them into the [ONNX](https://onnx.ai/) model format.
-
-The first step is to clone [Ultralytics](https://ultralytics.com/)'s YOLOv5 repository.
-
-```ps
-git clone https://github.com/ultralytics/yolov5
-cd yolov5
-```
-
-Optionally, but suggested, create and activate a [Python >= 3.7.0 Virtual Environment](https://docs.python.org/3/library/venv.html). Using Virtual Environments allows you to avoid installing Python packages globally which could break system tools or other projects. 
-
-```ps
-python -m pip install --upgrade pip
-python -m pip install --user virtualenv
-python -m venv .venv
-.venv\Scripts\activate
-```
-
->For this demo we used Python 3.9.6  
-
-Install all the requirements.
-
-```ps
-python -m pip install --upgrade pip
-pip install wheel
-```
-
->If you have an NVIDIA GPU we suggest installing the latest version of Pytorch with CUDA support, otherwise the package with CPU-only support will be installed. 
->For more details please refer to the official [PyTorch](https://pytorch.org/) page.  
->In this demo, we used Pytorch 1.11.0, and TorchVision 0.12.0 compiled for CUDA 11.3. You can install them with:
->
->```ps
->pip install torch==1.11.0+cu113 torchvision==0.12.0+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
->```
-
-Edit the file ***requirements.txt*** and uncomment the **onnx** package.
-
->If you have already installed PyTorch and TorchVision for CUDA, comment **torch** and **torchvision** packages.
-
-Now install ***requirements.txt***
-
->```ps
-pip install -r requirements.txt
-```
-
-Now we can export pre-trained models:
+To export pre-trained models:
 
 ```ps
 python export.py --weights yolov5n.pt --imgsz 640 640 --include onnx
@@ -162,7 +124,7 @@ python export.py --weights yolov5l6.pt --imgsz 1280 1280 --include onnx
 python export.py --weights yolov5x6.pt --imgsz 1280 1280 --include onnx
 ```
 
->It is not required to export all the pre-trained models. Please, check on the [YOLOv5 pre-trained model release page](https://github.com/ultralytics/yolov5/releases) for the ones that fit the requirements.
+>It is not required to export all the pre-trained models. Please, check on the [YOLOv5 pre-trained model release page](https://github.com/ultralytics/yolov5/releases) for the ones that fit your requirements.
 >We can specify the ***GPU id*** to use with the ***--device*** option. For example, if we want to export the pre-trained model YOLOv5x6 in ONNX format using the first CUDA GPU capable on our machine, we can run the following command:
 >
 >```ps
@@ -183,8 +145,8 @@ python export.py --weights yolov5x6.pt --imgsz 1280 1280 --include onnx
 
 ## References and other useful links
 
-### Ball Detector ONNX Demo
-
+- <https://github.com/deltatrelabs/deltatre-net-conf-2022-mlnet>
+- <https://github.com/ultralytics/yolov5/releases>
 - <https://github.com/dotnet/machinelearning-samples/tree/main/samples/csharp/getting-started/DeepLearning_ObjectDetection_Onnx>
 - <https://docs.microsoft.com/en-us/dotnet/machine-learning/resources/transforms>
 - <https://towardsdatascience.com/mask-detection-using-yolov5-ae40979227a6>
@@ -196,12 +158,11 @@ python export.py --weights yolov5x6.pt --imgsz 1280 1280 --include onnx
 - <https://stackoverflow.com/questions/64357642/how-to-load-image-from-memory-with-bitmap-or-byte-array-for-image-processing-in>
 - <https://docs.microsoft.com/en-us/dotnet/api/microsoft.ml.imageestimatorscatalog.extractpixels?view=ml-dotnet>
 - <https://stackoverflow.com/questions/70880362/transform-densetensor-in-microsoft-ml-onnxruntime>
-
-### TensorFlow fine-tuning Demo
-
-- <https://github.com/dotnet/machinelearning-samples/tree/main/samples/csharp/getting-started/DeepLearning_ImageClassification_Training>
-- <https://docs.microsoft.com/en-us/dotnet/machine-learning/tutorials/image-classification>
-- <https://levelup.gitconnected.com/training-an-ml-net-image-classification-model-on-gpus-using-google-colab-ee40b38af7e5>
+- <https://azure.microsoft.com/en-us/services/machine-learning/>
+- <https://cvat.org>
+- <https://makesense.ai>
+- <https://labelbox.com>
+- <https://roboflow.com>
 
 ## License
 
